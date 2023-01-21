@@ -127,5 +127,23 @@ export async function appRoutes(app: FastifyInstance) {
         }
     });
 
-
+    app.get('/summary', async (request) => {
+    /**
+     * Complex query hence the use of manual query (queryRaw)
+     * expected result [{ date: '2023-01-21', amount: 5, completed: 1 }, { date: '2023-01-22', amount: 3, completed: 3 }]
+     */
+        const summary = await prisma.$queryRaw`
+        SELECT
+            D.id,
+            D.date,
+            (
+                SELECT
+                    cast(count(*) as float)
+                FROM day_habits DH
+                WHERE DH.day_id = D.id
+            ) as completed
+            FROM days D
+    `
+        return summary;
+    });
 }
